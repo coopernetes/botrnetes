@@ -1,11 +1,12 @@
 package twitch
 
 import (
+	"bufio"
 	"context"
-	"encoding/json"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
@@ -37,8 +38,8 @@ func Init() {
 	//		log.Fatal(err)
 	//}
 
-	httpC := oauth2.NewClient(ctx, tSource)
-	log.Printf("Done, httpC=%p", &httpC)
+	httpClient := oauth2.NewClient(ctx, tSource)
+	log.Printf("Done, httpClient=%p", &httpClient)
 
 	req, err := http.NewRequest("GET", "https://api.twitch.tv/helix/users?login=twitchdev", nil)
 	req.Header.Add("Client-Id", id)
@@ -46,19 +47,18 @@ func Init() {
 		log.Fatal(err)
 	}
 
-	resp, err := httpC.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer resp.Body.Close()
 
-	body := make([]byte, 0, 0)
-	_, berr := resp.Body.Read(body)
-	if berr != nil {
-		log.Fatal(berr)
+	scanner := bufio.NewScanner(resp.Body)
+	var body strings.Builder
+	for scanner.Scan() {
+		body.WriteString(scanner.Text())
 	}
-	j, err := json.Marshal(body)
-	log.Printf("%s", j)
+	log.Printf("%s", body.String())
 }
 
 func lookup(envVar string) string {
