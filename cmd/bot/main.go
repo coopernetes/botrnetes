@@ -5,5 +5,6 @@ import (
 )
 
 func main() {
-	t.Init()
+	token := t.Init()
+	t.StartChat(token)
 }

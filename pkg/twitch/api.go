@@ -3,68 +3,83 @@ package twitch
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/clientcredentials"
 	"golang.org/x/oauth2/twitch"
 )
 
 const (
-	idEnvVar     = "TWITCH_CLIENT_ID"
-	secretEnvVar = "TWITCH_CLIENT_SECRET"
+	idEnvVar       = "TWITCH_CLIENT_ID"
+	secretEnvVar   = "TWITCH_CLIENT_SECRET"
+	redirectEnvVar = "TWITCH_REDIRECT_URL"
 )
 
 var (
-	oauth2Config *clientcredentials.Config
+	oauth2Config *oauth2.Config
 	httpClient   *http.Client
 	ctx          *context.Context
 )
 
-func Init() {
-	log.Print("Sleeping for 20s")
-	time.Sleep(time.Second * 20)
+func Init() string {
 	log.Printf("Initializing")
 	ctx := context.Background()
 	id, secret := lookup(idEnvVar), lookup(secretEnvVar)
-	oauth2Config = &clientcredentials.Config{
-		ClientID:     id,
-		ClientSecret: secret,
-		TokenURL:     twitch.Endpoint.TokenURL,
+	chatScopes := []string{"chat:read", "chat:edit"}
+
+	redirectUrl := os.Getenv(redirectEnvVar)
+	if redirectUrl == "" {
+		redirectUrl = "http://localhost:8080/login"
 	}
 
-	tSource := oauth2Config.TokenSource(ctx)
-	httpClient := oauth2.NewClient(ctx, tSource)
-	log.Printf("Done setting up httpClient")
+	oauth2Config = &oauth2.Config{
+		ClientID:     id,
+		ClientSecret: secret,
+		Endpoint:     twitch.Endpoint,
+		RedirectURL:  redirectUrl,
+		Scopes:       chatScopes,
+	}
 
-	log.Printf("Sending initial test request")
-	req, err := http.NewRequest("GET", "https://api.twitch.tv/helix/users?login=twitchdev", nil)
-	req.Header.Add("Client-Id", id)
+	randomState := make([]string, 32)
+	alphanum := []rune("abcdefghijklmnopqrstuvwxyz0123456789")
+	for i, _ := range randomState {
+		ranChar := alphanum[rand.Intn(len(alphanum))]
+		randomState[i] = string(ranChar)
+	}
+	url := oauth2Config.AuthCodeURL(strings.Join(randomState, ""))
+	log.Printf("Authorize this app here: %s", url)
+
+	var code string
+	if _, err := fmt.Scan(&code); err != nil {
+		log.Fatal(err)
+	}
+	tok, err := oauth2Config.Exchange(ctx, code)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	httpClient := oauth2Config.Client(ctx, tok)
+	log.Printf("Sending test request on new httpClient")
+	req, _ := http.NewRequest("GET", "https://api.twitch.tv/helix/users?login=twitchdev", nil)
+	req.Header.Add("Client-Id", id)
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer resp.Body.Close()
-
 	scanner := bufio.NewScanner(resp.Body)
 	var body strings.Builder
 	for scanner.Scan() {
 		body.WriteString(scanner.Text())
 	}
 	log.Printf("Response (%d): %s", resp.StatusCode, body.String())
-	t, err := oauth2Config.Token(ctx)
-	if err != nil {
-		log.Fatal(err)
-	}
-	StartChat(t.AccessToken)
+
+	return tok.AccessToken // return token once auth'd
 }
 
 func lookup(envVar string) string {

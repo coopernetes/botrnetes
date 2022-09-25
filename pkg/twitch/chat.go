@@ -3,24 +3,33 @@ package twitch
 import (
 	"fmt"
 	"log"
+	"os"
 	"strings"
+	"time"
 
 	"github.com/gempir/go-twitch-irc/v3"
 )
 
-var (
-	client *twitch.Client
-)
+const channelEnvVar = "TWITCH_CHANNEL"
 
 func StartChat(token string) {
-	client := twitch.NewClient("botrnetes", fmt.Sprintf("oauth:%s", token))
-	client.Join("roastedfunction")
-	log.Printf("Connecting to %s", client.IrcAddress)
-	err := client.Connect()
-	if err != nil {
-		log.Fatal(err)
+	channel := os.Getenv(channelEnvVar)
+	if channel == "" {
+		channel = "roastedfunction"
 	}
-	client.Say("roastedfunction", "I'm here!")
+
+	client := twitch.NewClient("botrnetes", fmt.Sprintf("oauth:%s", token))
+	client.OnPrivateMessage(func(message twitch.PrivateMessage) {
+		log.Printf(message.Message)
+	})
+	client.OnSelfJoinMessage(func(message twitch.UserJoinMessage) {
+		client.Say(channel, "I joined!")
+	})
+	client.Join(channel)
+	go client.Connect()
+	log.Printf("Before say")
+	time.Sleep(time.Second * 60)
+	client.Say("roastedfunction", "Hello! :wave:")
 }
 
 func isCommand(msg twitch.PrivateMessage) bool {
