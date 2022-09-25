@@ -7,10 +7,11 @@ The following environment variables must be set:
 * `TWITCH_CLIENT_SECRET`
 
 ## TODO
-- irc join
-- irc listen
-- irc respond
-- run the server
+- [x] irc join
+- [x] irc listen
+- [ ] receive auth code via HTTP server
+- [ ] irc respond to a command
+- [ ] deploy the server
 
 ## Install
 ```shell
