@@ -1,3 +1,5 @@
+github.com/gempir/go-twitch-irc/v3 v3.2.0 h1:ENhsa7RgBE1GMmDqe0iMkvcSYfgw6ZsXilt+sAg32/U=
+github.com/gempir/go-twitch-irc/v3 v3.2.0/go.mod h1:/W9KZIiyizVecp4PEb7kc4AlIyXKiCmvlXrzlpPUytU=
 github.com/go-oauth2/oauth2 v3.9.2+incompatible h1:A8gSjq4110EgZDVk4ZtcpusynU2Fto9eM6sXvxL+EOs=
 github.com/go-oauth2/oauth2 v3.9.2+incompatible/go.mod h1:GGcZ+i513KxN4yS7zBYfmwo3P+cyGvCS675uCNmWv/g=
 github.com/golang/protobuf v1.3.1/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=

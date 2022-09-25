@@ -3,8 +3,8 @@ A simple chat bot to post content based on commands.
 
 The following environment variables must be set:
 
-`TWITCH_CLIENT_ID`
-`TWITCH_CLIENT_SECRET`
+* `TWITCH_CLIENT_ID`
+* `TWITCH_CLIENT_SECRET`
 
 ## TODO
 - irc join

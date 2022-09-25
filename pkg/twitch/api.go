@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
@@ -21,9 +22,12 @@ const (
 var (
 	oauth2Config *clientcredentials.Config
 	httpClient   *http.Client
+	ctx          *context.Context
 )
 
 func Init() {
+	log.Print("Sleeping for 20s")
+	time.Sleep(time.Second * 20)
 	log.Printf("Initializing")
 	ctx := context.Background()
 	id, secret := lookup(idEnvVar), lookup(secretEnvVar)
@@ -34,13 +38,10 @@ func Init() {
 	}
 
 	tSource := oauth2Config.TokenSource(ctx)
-	//if err != nil {
-	//		log.Fatal(err)
-	//}
-
 	httpClient := oauth2.NewClient(ctx, tSource)
-	log.Printf("Done, httpClient=%p", &httpClient)
+	log.Printf("Done setting up httpClient")
 
+	log.Printf("Sending initial test request")
 	req, err := http.NewRequest("GET", "https://api.twitch.tv/helix/users?login=twitchdev", nil)
 	req.Header.Add("Client-Id", id)
 	if err != nil {
@@ -58,7 +59,12 @@ func Init() {
 	for scanner.Scan() {
 		body.WriteString(scanner.Text())
 	}
-	log.Printf("%s", body.String())
+	log.Printf("Response (%d): %s", resp.StatusCode, body.String())
+	t, err := oauth2Config.Token(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	StartChat(t.AccessToken)
 }
 
 func lookup(envVar string) string {
