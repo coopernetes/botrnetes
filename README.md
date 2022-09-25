@@ -5,11 +5,12 @@ The following environment variables must be set:
 
 * `TWITCH_CLIENT_ID`
 * `TWITCH_CLIENT_SECRET`
+* `TWITCH_REDIRECT_URL`
 
 ## TODO
 - [x] irc join
 - [x] irc listen
-- [ ] receive auth code via HTTP server
+- [x] receive auth code via HTTP server
 - [ ] irc respond to a command
 - [ ] deploy the server
 
