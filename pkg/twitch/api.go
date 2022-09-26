@@ -42,7 +42,7 @@ func Init() string {
 	}
 	state := strings.Join(randomState, "")
 
-	chatScopes := []string{"chat:read", "chat:edit"}
+	chatScopes := []string{"chat:read", "chat:edit", "whispers:read", "whispers:edit"}
 	redirectUrl := os.Getenv(redirectEnvVar)
 	if redirectUrl == "" {
 		redirectUrl = "http://localhost:8080/login"
